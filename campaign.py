@@ -20,7 +20,7 @@ Dependencies:
 RUN_MODE = "TEST"
 
 # Used only in TEST mode. Every address in this list receives one email.
-TEST_RECIPIENTS = ["your-test-email@example.com"]
+TEST_RECIPIENTS = ["tonmoy.ep@example.com" "tonmoy.bold@gmail.com" "teacherstoday.ctg@gmail.com"]
 
 # Each sender needs a Gmail address and the name of the GitHub Secret that
 # holds its Token JSON. The secret_name must exactly match your GitHub
@@ -28,7 +28,7 @@ TEST_RECIPIENTS = ["your-test-email@example.com"]
 # To add more senders later, add more lines in the same format:
 #   {"email": "sender2@gmail.com", "secret_name": "TOKEN_2"},
 SENDER_CONFIG = [
-    {"email": "sender1@gmail.com", "secret_name": "RAKIBTONMOY007"},
+    {"email": "rakibtonmoy007@gmail.com", "secret_name": "RAKIBTONMOY007"},
 ]
 
 # Email content — use {placeholder} syntax to personalise.
@@ -49,11 +49,11 @@ Best regards,
 
 # Maximum number of emails each sender account is allowed to send per run.
 # Total emails sent per run = EMAILS_PER_ACCOUNT_LIMIT x number of senders.
-EMAILS_PER_ACCOUNT_LIMIT = 30
+EMAILS_PER_ACCOUNT_LIMIT = 3
 
 # Seconds to wait between every send. Applied after both successes and
 # failures to maintain a consistent timing rhythm throughout the run.
-DELAY_SECONDS = 120
+DELAY_SECONDS = 5
 
 # Path to the CSV file inside your GitHub repository.
 CSV_FILE_PATH = "leads.csv"
