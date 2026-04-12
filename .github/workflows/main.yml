@@ -1,0 +1,36 @@
+name: Gmail Round-Robin Campaign
+
+on:
+  workflow_dispatch:   # Manual trigger from the GitHub Actions tab
+
+  # Uncomment to run on a fixed schedule (UTC timezone).
+  # schedule:
+  #   - cron: '0 9 * * 1-5'   # Every weekday at 9:00 AM UTC
+
+jobs:
+  send-campaign:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install \
+            google-auth \
+            google-auth-httplib2 \
+            google-api-python-client
+
+      # ALL GitHub Secrets are passed in one shot as a JSON string.
+      # The Python script parses this and looks up whichever secret_name
+      # is defined in SENDER_CONFIG — so you never touch this file again.
+      - name: Run campaign script
+        env:
+          ALL_SECRETS: ${{ toJSON(secrets) }}
+        run: python campaign.py
