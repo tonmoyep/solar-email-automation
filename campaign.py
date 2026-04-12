@@ -20,7 +20,7 @@ Dependencies:
 RUN_MODE = "TEST"
 
 # Used only in TEST mode. Every address in this list receives one email.
-TEST_RECIPIENTS = ["tonmoy.ep@example.com" "tonmoy.bold@gmail.com" "teacherstoday.ctg@gmail.com"]
+TEST_RECIPIENTS = ["tonmoy.ep@example.com", "tonmoy.bold@gmail.com", "teacherstoday.ctg@gmail.com"]
 
 # Each sender needs a Gmail address and the name of the GitHub Secret that
 # holds its Token JSON. The secret_name must exactly match your GitHub
