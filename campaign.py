@@ -56,7 +56,7 @@ EMAILS_PER_ACCOUNT_LIMIT = 3
 DELAY_SECONDS = 5
 
 # Path to the CSV file inside your GitHub repository.
-CSV_FILE_PATH = "leads.csv"
+CSV_FILE_PATH = "Solar_Email_Leads.csv"
 
 # Maps {placeholder} names used in EMAIL_BODY to exact CSV column headers.
 # Add or remove entries here to match your CSV and your email body.
