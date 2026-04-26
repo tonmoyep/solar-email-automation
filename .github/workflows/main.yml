@@ -1,0 +1,46 @@
+# .github/workflows/send_emails.yml
+
+name: Send Emails
+
+on:
+  workflow_dispatch:
+
+  # ── Uncomment to schedule ──────────────────────────────────────────────────
+  # schedule:
+  #   - cron: "0 9 * * 1-5"   # 9:00 AM UTC, Monday–Friday
+
+jobs:
+  send:
+    name: Run Email Sender
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    permissions:
+      contents: write   # Allows the script to commit updated sent_counts back
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send emails
+        env:
+          # ── Gmail tokens (one per sender account) ──────────────────────────
+          GMAIL_TOKEN_1: ${{ secrets.GMAIL_TOKEN_1 }}
+          GMAIL_TOKEN_2: ${{ secrets.GMAIL_TOKEN_2 }}
+          GMAIL_TOKEN_3: ${{ secrets.GMAIL_TOKEN_3 }}
+          GMAIL_TOKEN_4: ${{ secrets.GMAIL_TOKEN_4 }}
+          GMAIL_TOKEN_5: ${{ secrets.GMAIL_TOKEN_5 }}
+          # ── GitHub write-back (for updating sent_counts) ───────────────────
+          GH_PAT:      ${{ secrets.GH_PAT }}
+          GITHUB_USERNAME: ${{ github.repository_owner }}
+          GITHUB_REPO:     ${{ github.event.repository.name }}
+        run: python send_emails.py
