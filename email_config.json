@@ -12,7 +12,9 @@
   ],
 
   "test_recipients": [
-    "your-test-email@example.com"
+    "tonmoy.ep@gmail.com",
+    "teacherstoday.org@gmail.com",
+    "tonmoy.bold@gmail.com"
   ],
 
   "email_subject": "A Quick Note for {first_name} at {company}",
@@ -34,7 +36,7 @@
   },
 
   "sent_counts": {
-    "sender1@yourdomain.com": 0,
+    "rakibtonmoy007@gmail.com": 0,
     "sender2@yourdomain.com": 0,
     "sender3@yourdomain.com": 0,
     "sender4@yourdomain.com": 0,
