@@ -4,7 +4,7 @@
   "run_mode": "TEST",
 
   "senders": [
-    {"email": "sender1@yourdomain.com", "secret_name": "GMAIL_TOKEN_1"},
+    {"email": "rakibtonmoy007@gmail.com", "secret_name": "GMAIL_TOKEN_1"},
     {"email": "sender2@yourdomain.com", "secret_name": "GMAIL_TOKEN_2"},
     {"email": "sender3@yourdomain.com", "secret_name": "GMAIL_TOKEN_3"},
     {"email": "sender4@yourdomain.com", "secret_name": "GMAIL_TOKEN_4"},
