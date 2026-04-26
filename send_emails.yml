@@ -40,7 +40,7 @@ jobs:
           GMAIL_TOKEN_4: ${{ secrets.GMAIL_TOKEN_4 }}
           GMAIL_TOKEN_5: ${{ secrets.GMAIL_TOKEN_5 }}
           # ── GitHub write-back (for updating sent_counts) ───────────────────
-          GITHUB_PAT:      ${{ secrets.GITHUB_PAT }}
+          GH_PAT:      ${{ secrets.GH_PAT }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
           GITHUB_REPO:     ${{ github.event.repository.name }}
         run: python send_emails.py

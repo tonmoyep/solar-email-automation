@@ -101,7 +101,7 @@ def load_config(path: str) -> dict:
 
 def write_back_sent_counts(cfg: dict, updated_counts: dict) -> None:
     """Commits updated sent_counts to email_config.json on GitHub after each run."""
-    pat      = os.environ.get("GITHUB_PAT", "").strip()
+    pat      = os.environ.get("GH_PAT", "").strip()
     username = os.environ.get("GITHUB_USERNAME", GITHUB_USERNAME).strip()
     repo     = os.environ.get("GITHUB_REPO",     GITHUB_REPO).strip()
 
