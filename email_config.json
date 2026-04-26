@@ -1,20 +1,12 @@
 {
   "_comment": "This is the ONLY file you need to edit. All settings live here.",
 
-  "run_mode": "TEST",
-
   "senders": [
     {"email": "rakibtonmoy007@gmail.com", "secret_name": "GMAIL_TOKEN_1"},
     {"email": "sender2@yourdomain.com", "secret_name": "GMAIL_TOKEN_2"},
     {"email": "sender3@yourdomain.com", "secret_name": "GMAIL_TOKEN_3"},
     {"email": "sender4@yourdomain.com", "secret_name": "GMAIL_TOKEN_4"},
     {"email": "sender5@yourdomain.com", "secret_name": "GMAIL_TOKEN_5"}
-  ],
-
-  "test_recipients": [
-    "tonmoy.ep@gmail.com",
-    "teacherstoday.org@gmail.com",
-    "tonmoy.bold@gmail.com"
   ],
 
   "email_subject": "A Quick Note for {first_name} at {company}",

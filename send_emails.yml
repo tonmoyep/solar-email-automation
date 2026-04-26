@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 360
 
     permissions:
-      contents: write   # Allows the script to commit updated sent_counts back
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -33,14 +33,12 @@ jobs:
 
       - name: Send emails
         env:
-          # ── Gmail tokens (one per sender account) ──────────────────────────
           GMAIL_TOKEN_1: ${{ secrets.GMAIL_TOKEN_1 }}
           GMAIL_TOKEN_2: ${{ secrets.GMAIL_TOKEN_2 }}
           GMAIL_TOKEN_3: ${{ secrets.GMAIL_TOKEN_3 }}
           GMAIL_TOKEN_4: ${{ secrets.GMAIL_TOKEN_4 }}
           GMAIL_TOKEN_5: ${{ secrets.GMAIL_TOKEN_5 }}
-          # ── GitHub write-back (for updating sent_counts) ───────────────────
-          GH_PAT:      ${{ secrets.GH_PAT }}
-          GITHUB_USERNAME: ${{ github.repository_owner }}
-          GITHUB_REPO:     ${{ github.event.repository.name }}
+          GH_PAT:            ${{ secrets.GH_PAT }}
+          GITHUB_USERNAME:   ${{ github.repository_owner }}
+          GITHUB_REPO:       ${{ github.event.repository.name }}
         run: python send_emails.py

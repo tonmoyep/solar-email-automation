@@ -8,31 +8,16 @@ All configuration lives in email_config.json.
 This file never needs to be edited.
 
 Dependencies (requirements.txt):
-    google-api-python-client  google-auth  google-auth-httplib2  requests
+    google-api-python-client  google-auth  google-auth-httplib2  requests  openpyxl
 """
 
 # ==============================================================================
-#
-#   ██████╗ ██████╗ ███╗  ██╗███████╗██╗ ██████╗
-#   ████╗ ████║██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗
-#   ██╔████╔██║███████║███████╗   ██║   █████╗  ██████╔╝
-#   ██║╚██╔╝██║██╔══██║╚════██║   ██║   ██╔══╝  ██╔══██╗
-#   ██║ ╚═╝ ██║██║  ██║███████║   ██║   ███████╗██║  ██║
-#   ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
-#
 #   THIS FILE HAS NO CONFIGURATION.
-#   Edit email_config.json for everything — senders, mode, subject, body, delays.
-#
+#   Edit email_config.json for everything — senders, subject, body, delays.
 # ==============================================================================
 
-# Path to config file — only change this if you rename email_config.json
 CONFIG_FILE_PATH = "email_config.json"
 
-# GitHub repo details for writing sent_counts back after each run
-# Set GITHUB_PAT as a GitHub Secret. GITHUB_USERNAME and GITHUB_REPO are
-# read from environment variables set in the workflow file.
-GITHUB_USERNAME = ""   # Set env var: GITHUB_USERNAME
-GITHUB_REPO     = ""   # Set env var: GITHUB_REPO
 
 # ==============================================================================
 #   END OF CONFIGURATION
@@ -79,8 +64,8 @@ def load_config(path: str) -> dict:
         cfg = json.load(f)
 
     required = {
-        "run_mode", "senders", "test_recipients", "email_subject",
-        "email_body", "emails_per_account_limit", "delay_seconds",
+        "senders", "email_subject", "email_body",
+        "emails_per_account_limit", "delay_seconds",
         "csv_file_path", "csv_mapping", "sent_counts",
     }
     missing = required - set(cfg.keys())
@@ -88,7 +73,6 @@ def load_config(path: str) -> dict:
         raise ValueError(f"email_config.json is missing keys: {missing}")
 
     log.info(f"✅ Config loaded from '{path}'")
-    log.info(f"   run_mode                : {cfg['run_mode']}")
     log.info(f"   senders                 : {[s['email'] for s in cfg['senders']]}")
     log.info(f"   emails_per_account_limit: {cfg['emails_per_account_limit']}")
     log.info(f"   delay_seconds           : {cfg['delay_seconds']}")
@@ -100,13 +84,12 @@ def load_config(path: str) -> dict:
 # ==============================================================================
 
 def write_back_sent_counts(cfg: dict, updated_counts: dict) -> None:
-    """Commits updated sent_counts to email_config.json on GitHub after each run."""
     pat      = os.environ.get("GH_PAT", "").strip()
-    username = os.environ.get("GITHUB_USERNAME", GITHUB_USERNAME).strip()
-    repo     = os.environ.get("GITHUB_REPO",     GITHUB_REPO).strip()
+    username = os.environ.get("GITHUB_USERNAME", "").strip()
+    repo     = os.environ.get("GITHUB_REPO", "").strip()
 
     if not all([pat, username, repo]):
-        log.warning("⚠️  GITHUB_PAT / GITHUB_USERNAME / GITHUB_REPO not set — skipping write-back.")
+        log.warning("⚠️  GH_PAT / GITHUB_USERNAME / GITHUB_REPO not set — skipping write-back.")
         return
 
     cfg["sent_counts"] = updated_counts
@@ -145,7 +128,6 @@ def write_back_sent_counts(cfg: dict, updated_counts: dict) -> None:
 # ==============================================================================
 
 def build_gmail_service(sender: dict):
-    """Loads token JSON from the GitHub Secret named in sender['secret_name']."""
     secret_name = sender["secret_name"]
     token_json  = os.environ.get(secret_name, "").strip()
 
@@ -203,71 +185,79 @@ def send_one_email(service, message_obj: dict, sender: dict, recipient: str) -> 
 
 
 # ==============================================================================
-# ── CSV Loading ────────────────────────────────────────────────────────────────
+# ── File Loading (CSV or Excel) ────────────────────────────────────────────────
 # ==============================================================================
 
 def load_leads(cfg: dict) -> list[dict]:
-    csv_path   = cfg["csv_file_path"]
+    """
+    Loads leads from either a .csv or .xlsx / .xls file.
+    The file path and column mapping are defined in email_config.json.
+    """
+    file_path   = cfg["csv_file_path"]
     csv_mapping = cfg["csv_mapping"]
 
-    if not os.path.exists(csv_path):
-        raise FileNotFoundError(f"CSV not found: '{csv_path}'.")
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(
+            f"Leads file not found: '{file_path}'.\n"
+            f"Commit your CSV or Excel file to the repo and update csv_file_path in email_config.json."
+        )
 
-    leads = []
-    with open(csv_path, newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        missing = [c for c in csv_mapping.values() if c not in reader.fieldnames]
+    ext = os.path.splitext(file_path)[1].lower()
+
+    # ── Excel ─────────────────────────────────────────────────────────────────
+    if ext in (".xlsx", ".xls"):
+        try:
+            import openpyxl
+        except ImportError:
+            raise ImportError("openpyxl is required to read Excel files. Add it to requirements.txt.")
+
+        wb       = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
+        ws       = wb.active
+        rows     = list(ws.iter_rows(values_only=True))
+        headers  = [str(h).strip() if h is not None else "" for h in rows[0]]
+        data_rows = rows[1:]
+
+        missing = [c for c in csv_mapping.values() if c not in headers]
         if missing:
-            raise ValueError(f"CSV missing columns: {missing}. Available: {reader.fieldnames}")
-        for row in reader:
+            raise ValueError(f"Excel missing columns: {missing}. Found: {headers}")
+
+        leads = []
+        for row in data_rows:
+            row_dict = dict(zip(headers, row))
             leads.append({
-                placeholder: row[col].strip()
+                placeholder: str(row_dict.get(col, "")).strip()
                 for placeholder, col in csv_mapping.items()
             })
+        wb.close()
 
-    log.info(f"📄 Loaded {len(leads)} leads from '{csv_path}'.")
+    # ── CSV ───────────────────────────────────────────────────────────────────
+    else:
+        with open(file_path, newline="", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            missing = [c for c in csv_mapping.values() if c not in reader.fieldnames]
+            if missing:
+                raise ValueError(f"CSV missing columns: {missing}. Found: {reader.fieldnames}")
+            leads = [
+                {
+                    placeholder: row[col].strip()
+                    for placeholder, col in csv_mapping.items()
+                }
+                for row in reader
+            ]
+
+    # Filter out rows with no email
+    leads = [l for l in leads if l.get("email", "").strip()]
+    log.info(f"📄 Loaded {len(leads)} leads from '{file_path}'.")
     return leads
 
 
 # ==============================================================================
-# ── TEST MODE ──────────────────────────────────────────────────────────────────
+# ── Main Send Loop ─────────────────────────────────────────────────────────────
 # ==============================================================================
 
-def run_test_mode(cfg: dict) -> None:
+def run(cfg: dict) -> None:
     log.info("=" * 64)
-    log.info("  🔶  TEST MODE  —  no real recipients will be contacted")
-    log.info("=" * 64)
-
-    sender  = cfg["senders"][0]
-    service = build_gmail_service(sender)
-    dummy   = {key: f"[{key}]" for key in cfg["csv_mapping"]}
-    sent    = 0
-
-    for i, recipient in enumerate(cfg["test_recipients"]):
-        subject = fill_template(cfg["email_subject"], dummy)
-        body    = fill_template(cfg["email_body"],    dummy)
-        msg_obj = build_mime_message(recipient, subject, body, sender)
-
-        log.info(f"\n📧 Test email [{i+1}/{len(cfg['test_recipients'])}]  →  {recipient}")
-        if send_one_email(service, msg_obj, sender, recipient):
-            sent += 1
-
-        if i < len(cfg["test_recipients"]) - 1:
-            log.info(f"  ⏳ Waiting {cfg['delay_seconds']}s...")
-            time.sleep(cfg["delay_seconds"])
-
-    log.info("\n" + "=" * 64)
-    log.info(f"  TEST COMPLETE  —  {sent}/{len(cfg['test_recipients'])} sent")
-    log.info("=" * 64)
-
-
-# ==============================================================================
-# ── LIVE MODE ──────────────────────────────────────────────────────────────────
-# ==============================================================================
-
-def run_live_mode(cfg: dict) -> None:
-    log.info("=" * 64)
-    log.info("  🚀  LIVE MODE  —  sending to real recipients")
+    log.info("  🚀  Sending emails")
     log.info("=" * 64)
 
     leads     = load_leads(cfg)
@@ -308,10 +298,9 @@ def run_live_mode(cfg: dict) -> None:
     for lead_num, lead in enumerate(leads, start=1):
         recipient = lead.get("email", "").strip()
         if not recipient:
-            log.warning(f"  ⚠️  Lead #{lead_num} has no email — skipping.")
             continue
 
-        # Find the next sender that hasn't hit the limit
+        # Find next sender that hasn't hit the limit
         attempts = 0
         while sent_counts[services[sender_idx]["config"]["email"]] >= limit:
             sender_idx = (sender_idx + 1) % n_senders
@@ -365,14 +354,5 @@ def _print_summary(sent, failed, total, sent_counts, limit):
 # ==============================================================================
 
 if __name__ == "__main__":
-    cfg  = load_config(CONFIG_FILE_PATH)
-    mode = cfg["run_mode"].strip().upper()
-
-    if mode == "TEST":
-        run_test_mode(cfg)
-    elif mode == "LIVE":
-        run_live_mode(cfg)
-    else:
-        raise ValueError(
-            f"run_mode in email_config.json must be 'TEST' or 'LIVE'. Got: '{cfg['run_mode']}'"
-        )
+    cfg = load_config(CONFIG_FILE_PATH)
+    run(cfg)
