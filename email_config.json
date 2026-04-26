@@ -1,0 +1,43 @@
+{
+  "_comment": "This is the ONLY file you need to edit. All settings live here.",
+
+  "run_mode": "TEST",
+
+  "senders": [
+    {"email": "sender1@yourdomain.com", "secret_name": "GMAIL_TOKEN_1"},
+    {"email": "sender2@yourdomain.com", "secret_name": "GMAIL_TOKEN_2"},
+    {"email": "sender3@yourdomain.com", "secret_name": "GMAIL_TOKEN_3"},
+    {"email": "sender4@yourdomain.com", "secret_name": "GMAIL_TOKEN_4"},
+    {"email": "sender5@yourdomain.com", "secret_name": "GMAIL_TOKEN_5"}
+  ],
+
+  "test_recipients": [
+    "your-test-email@example.com"
+  ],
+
+  "email_subject": "A Quick Note for {first_name} at {company}",
+
+  "email_body": "<html><body style=\"font-family: Georgia, serif; font-size: 15px; color: #1a1a1a; line-height: 1.75; max-width: 580px;\">\n  <p>Hi {first_name},</p>\n  <p>I came across <strong>{company}</strong> and wanted to reach out — I think there could be a great fit here.</p>\n  <p>[Your value proposition — 2 sentences max.]</p>\n  <p>Would a quick 15-minute call this week work?</p>\n  <p>Best,<br><strong>Rakib Hasan</strong></p>\n  <p style=\"font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 10px; margin-top: 30px;\">If this isn't relevant, just reply and I'll remove you immediately.</p>\n</body></html>",
+
+  "emails_per_account_limit": 30,
+
+  "delay_seconds": 120,
+
+  "csv_file_path": "leads.csv",
+
+  "csv_mapping": {
+    "first_name": "First Name",
+    "last_name":  "Last Name",
+    "company":    "Company Name",
+    "title":      "Title",
+    "email":      "Email"
+  },
+
+  "sent_counts": {
+    "sender1@yourdomain.com": 0,
+    "sender2@yourdomain.com": 0,
+    "sender3@yourdomain.com": 0,
+    "sender4@yourdomain.com": 0,
+    "sender5@yourdomain.com": 0
+  }
+}
